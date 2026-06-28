@@ -527,6 +527,7 @@
                 <h3>VENDOR SETUPS</h3>
                 <ul>
                     <li><span class="docs-nav-item" data-section="fortigate-snmp">FortiGate SNMP Setup</span></li>
+                    <li><span class="docs-nav-item" data-section="fortigate-sflow">FortiGate sFlow Setup</span></li>
                     <li><span class="docs-nav-item" data-section="custom-vendor">Custom Profiles</span></li>
                 </ul>
             </nav>
@@ -895,6 +896,65 @@ end</code></pre>
                         </tr>
                     </tbody>
                 </table>
+            </section>
+
+            <!-- SECTION 5: FortiGate sFlow Setup -->
+            <section class="docs-section hidden" id="section-fortigate-sflow">
+                <h1>FortiGate sFlow Setup Guide</h1>
+                <p>Configure sFlow v5 on your FortiGate firewall to export raw conversation-level packet telemetry to the Firewall-Mon flow analyzer on port <code>6343</code>.</p>
+                
+                <h2>1. Configure the Global sFlow Collector</h2>
+                <p>FortiOS sFlow parameters are configured globally via the CLI. Define the IP address of your Firewall-Mon server and set the sFlow collector port to <code>6343</code>:</p>
+                
+                <div class="code-block-wrapper">
+                    <pre><code class="lang-bash">config system sflow
+    set collector-ip &lt;your-firewall-mon-server-ip&gt;
+    set collector-port 6343
+end</code></pre>
+                </div>
+
+                <h2>2. Enable sFlow on Specific Interfaces</h2>
+                <p>sFlow samples traffic packets on a per-interface basis. You must enable the sFlow sampler on any interface you wish to monitor (e.g. WAN or LAN ports):</p>
+                
+                <div class="code-block-wrapper">
+                    <pre><code class="lang-bash">config system interface
+    edit "port1"
+        set sflow-sampler enable
+        set sample-rate 512
+        set sample-direction both
+    next
+end</code></pre>
+                </div>
+
+                <h3>Configuration Parameter Details</h3>
+                <table class="docs-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Recommended Value</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>sample-rate</code></td>
+                            <td><code>512</code> to <code>2048</code></td>
+                            <td>The packets-to-samples ratio. For example, <code>512</code> means 1 out of every 512 packets is sampled. Widen for high-bandwidth links to reduce CPU load.</td>
+                        </tr>
+                        <tr>
+                            <td><code>sample-direction</code></td>
+                            <td><code>both</code></td>
+                            <td>Toggles traffic direction monitoring. Supports <code>both</code>, <code>rx</code> (inbound only), or <code>tx</code> (outbound only).</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h2>3. Test sFlow Traffic Reception</h2>
+                <p>Verify sFlow datagrams are successfully leaving your firewall and reaching the server host:</p>
+                <div class="code-block-wrapper">
+                    <pre><code class="lang-bash"># Run on the Firewall-Mon server host to inspect incoming sFlow packets
+sudo tcpdump -i any port 6343 -nn</code></pre>
+                </div>
             </section>
 
             <!-- SECTION 5: Custom Vendor Setup -->
