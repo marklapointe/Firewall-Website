@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firewall-Mon — Technical Documentation</title>
+    <meta name="description" content="Reference documentation and architecture specifications for Firewall-Mon. Understand process components, telemetry sync loops, and SNMP setups.">
+    
+    <!-- Favicon Links -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/features/f6-audit-posture.png">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Custom Documentation Specific Styles -->
+    <style>
+        .docs-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            max-width: 1200px;
+            margin: 40px auto 80px;
+            gap: 40px;
+            padding: 0 24px;
+        }
+
+        .docs-sidebar {
+            position: sticky;
+            top: 100px;
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+            border-right: 1px solid var(--bg-tertiary);
+            padding-right: 20px;
+        }
+
+        .docs-sidebar-nav h3 {
+            font-size: 0.72rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .docs-sidebar-nav ul {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
+        .docs-nav-item {
+            display: block;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .docs-nav-item:hover {
+            color: var(--accent);
+            background-color: rgba(88, 166, 255, 0.05);
+        }
+
+        .docs-nav-item.active {
+            color: var(--accent);
+            background-color: rgba(88, 166, 255, 0.1);
+            font-weight: 600;
+        }
+
+        .docs-content {
+            min-width: 0;
+        }
+
+        .docs-section {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .docs-section h1 {
+            font-size: 2.25rem;
+            margin-bottom: 16px;
+            border-bottom: var(--border);
+            padding-bottom: 16px;
+        }
+
+        .docs-section h2 {
+            font-size: 1.5rem;
+            margin: 36px 0 16px;
+            color: var(--text-primary);
+        }
+
+        .docs-section h3 {
+            font-size: 1.15rem;
+            margin: 24px 0 12px;
+            color: var(--text-primary);
+        }
+
+        .docs-section p {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+        }
+
+        /* Architecture Flow Layout */
+        .arch-web-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin: 30px 0;
+        }
+
+        .flow-column-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            align-items: stretch;
+            position: relative;
+        }
+
+        .flow-box {
+            background-color: var(--bg-primary);
+            border: var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: var(--shadow);
+            position: relative;
+            z-index: 2;
+        }
+
+        .flow-box-title {
+            font-size: 0.95rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--accent);
+            border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .flow-elements {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .flow-el {
+            background-color: var(--bg-secondary);
+            border: 1px solid rgba(48, 54, 61, 0.5);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .flow-el .sub-lbl {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .db-barrel {
+            border-color: var(--success);
+            background-color: rgba(63, 185, 80, 0.03);
+        }
+
+        .db-barrel .flow-box-title {
+            color: var(--success);
+        }
+
+        /* SVG flow lines overlay */
+        .flow-connector-bar {
+            background-color: var(--bg-secondary);
+            border: var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            position: relative;
+        }
+
+        .flow-connector-bar::before, .flow-connector-bar::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background-color: var(--bg-tertiary);
+            left: 50%;
+        }
+
+        .flow-connector-bar::before { top: -20px; }
+        .flow-connector-bar::after { bottom: -20px; }
+
+        /* Sequence interactive widget */
+        .sequence-web-widget {
+            background-color: var(--bg-primary);
+            border: var(--border);
+            border-radius: var(--radius);
+            margin: 30px 0;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .seq-selector-bar {
+            display: flex;
+            background-color: rgba(13, 17, 23, 0.4);
+            border-bottom: var(--border);
+        }
+
+        .seq-tab-btn {
+            flex-grow: 1;
+            padding: 14px;
+            background: none;
+            border: none;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: var(--transition);
+        }
+
+        .seq-tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background-color: rgba(13, 17, 23, 0.2);
+        }
+
+        .seq-display-panel {
+            padding: 30px;
+        }
+
+        .seq-step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .seq-step-card {
+            background-color: var(--bg-secondary);
+            border: var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px 20px;
+            display: grid;
+            grid-template-columns: 80px 1.5fr 1fr;
+            gap: 20px;
+            align-items: center;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .seq-step-num {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .seq-badge-idx {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .seq-flow-path {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+
+        .seq-actor {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .seq-arrow {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .seq-msg {
+            color: var(--warning);
+            background-color: rgba(210, 153, 34, 0.08);
+            border: 1px solid rgba(210, 153, 34, 0.2);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+
+        .seq-desc {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        /* Changelog Timeline */
+        .changelog-timeline {
+            position: relative;
+            padding-left: 30px;
+            margin: 40px 0;
+        }
+
+        .changelog-timeline::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background-color: var(--bg-tertiary);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 50px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px;
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--bg);
+            border: 3px solid var(--accent);
+            z-index: 2;
+        }
+
+        .timeline-item.minor::before {
+            border-color: var(--bg-tertiary);
+        }
+
+        .timeline-header {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .timeline-version {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: var(--font-heading);
+        }
+
+        .timeline-date {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .timeline-body {
+            background-color: var(--bg-primary);
+            border: var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .timeline-badge-group {
+            margin-bottom: 12px;
+        }
+
+        .timeline-change-item {
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+
+        .timeline-change-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Table Styling */
+        .docs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.88rem;
+        }
+
+        .docs-table th {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 2px solid var(--bg-tertiary);
+        }
+
+        .docs-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(48, 54, 61, 0.4);
+            color: var(--text-secondary);
+        }
+
+        .docs-table tr:hover {
+            background-color: rgba(48, 54, 61, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .docs-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .docs-sidebar {
+                position: static;
+                height: auto;
+                border-right: none;
+                border-bottom: var(--border);
+                padding-right: 0;
+                padding-bottom: 20px;
+            }
+
+            .docs-sidebar-nav ul {
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 8px;
+                margin-bottom: 10px;
+            }
+
+            .docs-nav-item {
+                flex-shrink: 0;
+            }
+
+            .flow-column-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .seq-step-card {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Decorative Glows -->
+    <div class="glow-bg glow-left"></div>
+    <div class="glow-bg" style="background: var(--email-grad-start); bottom: 100px; left: 40%; opacity: 0.05;"></div>
+
+    <!-- Navigation Header -->
+    <header class="site-header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="logo-icon">
+                    <rect x="3" y="11" width="18" height="10" rx="2" />
+                    <path d="M12 2v9" />
+                    <path d="M8 5h8" />
+                </svg>
+                <span>Firewall-Mon</span>
+            </a>
+            
+            <nav class="main-nav">
+                <ul class="nav-links">
+                    <li><a href="index.html#why">Why Us</a></li>
+                    <li><a href="index.html#demo">Live Demo</a></li>
+                    <li><a href="index.html#config-diff">Config Drift</a></li>
+                    <li><a href="index.html#probe-relay">Architecture</a></li>
+                    <li><a href="index.html#features">Features</a></li>
+                    <li><a href="index.html#security">Security</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-actions">
+                <a href="https://github.com/xphox2/Firewall-Monitoring" target="_blank" class="github-stars-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                    <span>GitHub</span>
+                </a>
+                <a href="index.html#quickstart" class="btn btn-primary btn-sm">Install Now</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Docs Workspace -->
+    <main class="docs-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="docs-sidebar">
+            <nav class="docs-sidebar-nav">
+                <h3>REFERENCE</h3>
+                <ul>
+                    <li><span class="docs-nav-item active" data-section="intro">Overview</span></li>
+                    <li><span class="docs-nav-item" data-section="architecture">Architecture Spec</span></li>
+                    <li><span class="docs-nav-item" data-section="changelog">Changelog</span></li>
+                </ul>
+
+                <h3>VENDOR SETUPS</h3>
+                <ul>
+                    <li><span class="docs-nav-item" data-section="fortigate-snmp">FortiGate SNMP Setup</span></li>
+                    <li><span class="docs-nav-item" data-section="custom-vendor">Custom Profiles</span></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <article class="docs-content">
+            
+            <!-- SECTION 1: Introduction -->
+            <section class="docs-section" id="section-intro">
+                <h1>Documentation Overview</h1>
+                <p>Welcome to the Firewall-Mon documentation center. Firewall-Mon is a vendor-agnostic, high-performance firewall fleet monitoring system. It provides real-time SNMP status polling, raw sFlow traffic analytics, trap routing, and security-classified config drift logging in a unified dashboard.</p>
+                
+                <h2>Product Posture</h2>
+                <p>Unlike general Network Management Systems (NMS) which offer generic OID walks and massive configuration tables, Firewall-Mon is designed strictly <strong>firewall-first</strong>. It provides immediate, out-of-the-box visibility into CPU/ASIC chips, interface states, dynamic VPN tunnels (IPsec, SSL, dialup), High Availability (HA) cluster health, and environment sensors.</p>
+
+                <h2>Key Project Roots</h2>
+                <p>Firewall-Mon is a <strong>TechnicalLabs</strong> open-source project created by <strong>Xphox</strong> of <strong>Xphox Networks</strong>. It is released under the permissive MIT license and can be fully self-hosted within a single container in under 30 seconds.</p>
+
+                <div style="background-color: var(--bg-primary); border: var(--border); padding: 20px; border-radius: var(--radius); margin-top: 30px;">
+                    <h3 style="margin-top: 0; color: var(--accent);">Need Immediate Installation?</h3>
+                    <p style="margin-bottom: 12px; font-size: 0.9rem;">You can start the server locally using our single command line repository builder:</p>
+                    <code class="mono-code" style="display: block; padding: 10px; margin-bottom: 16px;">git clone https://github.com/xphox2/Firewall-Monitoring.git &amp;&amp; cd Firewall-Monitoring &amp;&amp; docker compose up -d</code>
+                    <a href="index.html#quickstart" class="btn btn-secondary btn-sm">View Quick Start Steps →</a>
+                </div>
+            </section>
+
+            <!-- SECTION 2: Architecture Spec -->
+            <section class="docs-section hidden" id="section-architecture">
+                <h1>Architecture Specification</h1>
+                <p>Firewall-Mon operates as a cooperative process bundle sharing a single PostgreSQL 16 database. Devices are monitored either <strong>directly</strong> (polled over SNMP by the central server) or <strong>remotely</strong> (polled by local probe daemons relaying telemetry over outbound HTTPS).</p>
+                
+                <h2>Component Data Flow (Web-Native Flowchart)</h2>
+                <p>The diagram below displays how the daemons, database layers, edge probes, and notification channels coordinate telemetry ingest.</p>
+
+                <!-- Custom HTML/CSS/SVG Component Diagram -->
+                <div class="arch-web-flow">
+                    <div class="flow-column-grid">
+                        
+                        <!-- Col 1: Sources -->
+                        <div class="flow-box">
+                            <div class="flow-box-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2" /><path d="M12 2v9" /></svg>
+                                <span>Firewall Appliances</span>
+                            </div>
+                            <div class="flow-elements">
+                                <div class="flow-el"><span>SNMP Agent</span> <span class="sub-lbl">UDP 161</span></div>
+                                <div class="flow-el"><span>Trap Generator</span> <span class="sub-lbl">UDP 162</span></div>
+                                <div class="flow-el"><span>sFlow Exporter</span> <span class="sub-lbl">UDP 6343</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Col 2: Ingest & Polling -->
+                        <div class="flow-box">
+                            <div class="flow-box-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path></svg>
+                                <span>Cooperating Daemons</span>
+                            </div>
+                            <div class="flow-elements">
+                                <div class="flow-el"><span>fwmon-poller</span> <span class="sub-lbl">direct SNMP</span></div>
+                                <div class="flow-el"><span>fwmon-trap</span> <span class="sub-lbl">trap receiver</span></div>
+                                <div class="flow-el"><span>fwmon-api</span> <span class="sub-lbl">Gin endpoint</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Col 3: Database & Notifiers -->
+                        <div class="flow-box db-barrel">
+                            <div class="flow-box-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path></svg>
+                                <span>Core Datastore</span>
+                            </div>
+                            <div class="flow-elements">
+                                <div class="flow-el"><span>PostgreSQL 16</span> <span class="sub-lbl">Timeseries</span></div>
+                                <div class="flow-el"><span>AlertManager</span> <span class="sub-lbl">Notifiers</span></div>
+                                <div class="flow-el"><span>IRC Bot</span> <span class="sub-lbl">Alert Channel</span></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Flow connections descriptions -->
+                    <div class="flow-connector-bar">
+                        <strong>DIRECT PATH:</strong> SNMP Polls → fwmon-poller • Traps → fwmon-trap • sFlow → PostgreSQL Ingest
+                    </div>
+
+                    <div class="flow-connector-bar">
+                        <strong>REMOTE PATH (CGNAT):</strong> Edge firewalls polled by <code class="mono-code">firewall-collector</code> → Relayed via HTTPS POST (idempotent batches) to <code class="mono-code">fwmon-api</code>.
+                    </div>
+                </div>
+
+                <h2>Interactive Sequence Flow Player</h2>
+                <p>Select a lifecycle flow tab below to view how requests, handshakes, and database updates interact sequentially.</p>
+
+                <!-- Sequence Diagram Interactive Widget -->
+                <div class="sequence-web-widget">
+                    <div class="seq-selector-bar">
+                        <button class="seq-tab-btn active" data-seq="seq-probe">Probe Registration</button>
+                        <button class="seq-tab-btn" data-seq="seq-poll">Direct SNMP Poll</button>
+                        <button class="seq-tab-btn" data-seq="seq-alert">Alert Fire & Recovery</button>
+                    </div>
+                    
+                    <div class="seq-display-panel">
+                        <!-- Probe Registration Steps -->
+                        <div class="seq-step-list" id="list-seq-probe">
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">1</span> <span>Request</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">Probe</span> <span class="seq-arrow">→</span> <span class="seq-msg">POST /register</span> <span class="seq-arrow">→</span> <span class="seq-actor">fwmon-api</span></div>
+                                <div class="seq-desc">The remote collector probe transmits its site details, hostname, and registration key to the central server.</div>
+                            </div>
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">2</span> <span>Hash & Store</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">fwmon-api</span> <span class="seq-arrow">→</span> <span class="seq-msg">SHA-256 Hashing</span> <span class="seq-arrow">→</span> <span class="seq-actor">PostgreSQL</span></div>
+                                <div class="seq-desc">The API hashes the credentials at rest using SHA-256 (in compliance with security audits) and records the probe as <strong>Pending Approval</strong>.</div>
+                            </div>
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">3</span> <span>Approval</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">Operator</span> <span class="seq-arrow">→</span> <span class="seq-msg">Authorize</span> <span class="seq-arrow">→</span> <span class="seq-actor">fwmon-api</span></div>
+                                <div class="seq-desc">The system administrator approves the registration token in the secure Web Admin Console, toggling the status to <strong>Approved</strong>.</div>
+                            </div>
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">4</span> <span>Sync Loop</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">Probe</span> <span class="seq-arrow">⇄</span> <span class="seq-msg">X-Probe-Batch-ID</span> <span class="seq-arrow">⇄</span> <span class="seq-actor">fwmon-api</span></div>
+                                <div class="seq-desc">Every sync interval (30s), the probe relays syslog, traps, and flows. The <code>X-Probe-Batch-ID</code> header ensures that network retries are strictly idempotent.</div>
+                            </div>
+                        </div>
+
+                        <!-- Direct SNMP Poll Steps -->
+                        <div class="seq-step-list hidden" id="list-seq-poll">
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">1</span> <span>Trigger</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">fwmon-poller</span> <span class="seq-arrow">→</span> <span class="seq-msg">Interval Tick</span> <span class="seq-arrow">→</span> <span class="seq-actor">Scheduler</span></div>
+                                <div class="seq-desc">Every 30s-60s, the poller scheduler initiates an active polling cycle for all directly-configured firewall appliances.</div>
+                            </div>
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">2</span> <span>SNMP GET</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">fwmon-poller</span> <span class="seq-arrow">→</span> <span class="seq-msg">SNMP OID Walk</span> <span class="seq-arrow">→</span> <span class="seq-actor">Firewall</span></div>
+                                <div class="seq-desc">The poller fires targeted OID walks matching the device's specific vendor profile (e.g. Fortigate CPU/memory/sessions or Palo Alto sensors).</div>
+                            </div>
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">3</span> <span>Write Metrics</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">fwmon-poller</span> <span class="seq-arrow">→</span> <span class="seq-msg">Batch Write</span> <span class="seq-arrow">→</span> <span class="seq-actor">PostgreSQL</span></div>
+                                <div class="seq-desc">Received metrics are converted and batch-inserted as raw telemetry into the database.</div>
+                            </div>
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">4</span> <span>Notify</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">fwmon-poller</span> <span class="seq-arrow">→</span> <span class="seq-msg">Threshold Trigger</span> <span class="seq-arrow">→</span> <span class="seq-actor">AlertManager</span></div>
+                                <div class="seq-desc">If a critical threshold is breached (e.g. CPU > 90% or a VPN tunnel drops), an alert is pushed to Slack, Discord, or Email.</div>
+                            </div>
+                        </div>
+
+                        <!-- Alert Fire Steps -->
+                        <div class="seq-step-list hidden" id="list-seq-alert">
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">1</span> <span>Signal</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">Poller/Traps</span> <span class="seq-arrow">→</span> <span class="seq-msg">Breach Event</span> <span class="seq-arrow">→</span> <span class="seq-actor">AlertManager</span></div>
+                                <div class="seq-desc">A daemon detects a device failure or critical log pattern and relays the event.</div>
+                            </div>
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">2</span> <span>Throttle</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">AlertManager</span> <span class="seq-arrow">→</span> <span class="seq-msg">Cooldown Check</span> <span class="seq-arrow">→</span> <span class="seq-actor">State Engine</span></div>
+                                <div class="seq-desc">The alerts state engine processes deduplication, active cooldowns, and maintenance-window bypasses to avoid alert storms.</div>
+                            </div>
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">3</span> <span>Broadcast</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">AlertManager</span> <span class="seq-arrow">→</span> <span class="seq-msg">Alert Trigger</span> <span class="seq-arrow">→</span> <span class="seq-actor">Chat / Email / IRC</span></div>
+                                <div class="seq-desc">If the alert is fresh, notifications are dispatched to designated channels (Slack webhooks, Discord hooks, IRC channels, SMTP mail).</div>
+                            </div>
+                            <div class="seq-step-card">
+                                <div class="seq-step-num"><span class="seq-badge-idx">4</span> <span>Clear</span></div>
+                                <div class="seq-flow-path"><span class="seq-actor">Poller</span> <span class="seq-arrow">→</span> <span class="seq-msg">Healthy State</span> <span class="seq-arrow">→</span> <span class="seq-actor">AlertManager</span></div>
+                                <div class="seq-desc">Once the metric drops below thresholds, a single recovery notice is triggered and the active alert state is cleared.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Database Concerns Layout</h2>
+                <table class="docs-table">
+                    <thead>
+                        <tr>
+                            <th>Concern</th>
+                            <th>Internal Package Path</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>HTTP Handlers</td>
+                            <td><code>internal/api/handlers/</code></td>
+                            <td>Gin routes handling public statistics, probe relay uploads, and admin panel commands.</td>
+                        </tr>
+                        <tr>
+                            <td>SNMP Engine</td>
+                            <td><code>internal/snmp/</code></td>
+                            <td>SNMPv2c/v3 client calls and vendor OID parsing profiles.</td>
+                        </tr>
+                        <tr>
+                            <td>Database Migrations</td>
+                            <td><code>internal/database/</code></td>
+                            <td>PostgreSQL/SQLite DDL migrations and raw GORM connection hooks.</td>
+                        </tr>
+                        <tr>
+                            <td>Alert Rules</td>
+                            <td><code>internal/alerts/</code></td>
+                            <td>Threshold matching policies and cooldown timers.</td>
+                        </tr>
+                        <tr>
+                            <td>Config Parser</td>
+                            <td><code>internal/configdiff/</code></td>
+                            <td>Normalizes configuration files and classifies drift severity.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- SECTION 3: Changelog Timeline -->
+            <section class="docs-section hidden" id="section-changelog">
+                <h1>Release Changelog</h1>
+                <p>Tracking the development of the Firewall-Mon monitoring system core from the verified releases. Semantic versioning is strictly followed.</p>
+                
+                <div class="changelog-timeline">
+                    <!-- Version 0.10.498 -->
+                    <div class="timeline-item">
+                        <div class="timeline-header">
+                            <span class="timeline-version">v0.10.498</span>
+                            <span class="timeline-date">2026-06-27</span>
+                        </div>
+                        <div class="timeline-body">
+                            <div class="timeline-badge-group">
+                                <span class="badge badge-info">Operations Report Redesign</span>
+                            </div>
+                            <div class="timeline-change-item">
+                                <strong>Operations report redesign:</strong> Modernized the email and dashboard summary reports using the Plus Jakarta Sans type system, linear gradients, and responsive mobile grids.
+                            </div>
+                            <div class="timeline-change-item">
+                                <strong>Gmail-Safe IsEmail mode:</strong> Reworked the mailer engine to strip raw SVG graphs from email bodies—which Gmail routinely truncates—and substitute clean, searchable text metrics. The interactive SVG diagrams remain active inside the admin web console.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Version 0.10.497 -->
+                    <div class="timeline-item minor">
+                        <div class="timeline-header">
+                            <span class="timeline-version">v0.10.497</span>
+                            <span class="timeline-date">2026-06-25</span>
+                        </div>
+                        <div class="timeline-body">
+                            <div class="timeline-badge-group">
+                                <span class="badge badge-warning">Database Fix</span>
+                            </div>
+                            <div class="timeline-change-item">
+                                <strong>Flow-batch loops resolved:</strong> Added the missing <code>drops</code> column to older <code>flow_samples</code> tables (Migration v10). This prevents the probe sync engine from re-queueing flow packets indefinitely due to missing column database constraints (SQLSTATE 42703).
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Version 0.10.496 -->
+                    <div class="timeline-item minor">
+                        <div class="timeline-header">
+                            <span class="timeline-version">v0.10.496</span>
+                            <span class="timeline-date">2026-06-25</span>
+                        </div>
+                        <div class="timeline-body">
+                            <div class="timeline-badge-group">
+                                <span class="badge badge-warning">Data Widen Migration</span>
+                            </div>
+                            <div class="timeline-change-item">
+                                <strong>sFlow ingest widening:</strong> Fixed data overflow errors on heavy network spikes. Widened integer ranges on port and sequence number columns (Migration v9) to support full unsigned range properties under Postgres.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Version 0.10.491 -->
+                    <div class="timeline-item minor">
+                        <div class="timeline-header">
+                            <span class="timeline-version">v0.10.491</span>
+                            <span class="timeline-date">2026-06-24</span>
+                        </div>
+                        <div class="timeline-body">
+                            <div class="timeline-badge-group">
+                                <span class="badge badge-success">Security Audited</span>
+                            </div>
+                            <div class="timeline-change-item">
+                                <strong>M8 Key Fail-Fast:</strong> Added a startup canary checker to verify the active <code>ENCRYPTION_KEY</code> can successfully decrypt credentials. Toggles health probes to 503 if unreadable.
+                            </div>
+                            <div class="timeline-change-item">
+                                <strong>REL-01 Recovery:</strong> Long-lived background goroutines now wrap errors under panic recoveries (<code>SafeGo</code>), containing crashes to the local process instead of aborting the server container.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: FortiGate SNMP Setup -->
+            <section class="docs-section hidden" id="section-fortigate-snmp">
+                <h1>FortiGate SNMP Setup Guide</h1>
+                <p>Configure your FortiGate firewall to export metrics and relay SNMP Traps directly to the Firewall-Mon collector.</p>
+                
+                <h2>1. Enable SNMP</h2>
+                
+                <h3>Via Web Console GUI</h3>
+                <ol style="margin-left: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px;">
+                    <li>Log in to the FortiGate dashboard interface.</li>
+                    <li>Navigate to <strong>System</strong> &gt; <strong>SNMP</strong>.</li>
+                    <li>Toggle SNMP to <strong>Enabled</strong>.</li>
+                    <li>Add an SNMP Community (e.g. Version <code>v2c</code>, name <code>public</code>).</li>
+                </ol>
+
+                <h3>Via CLI Command Line</h3>
+                <div class="code-block-wrapper">
+                    <pre><code class="lang-bash">config system snmp
+    set status enable
+    config community
+        edit 1
+            set name "public"
+            set status enable
+        next
+    end
+end</code></pre>
+                </div>
+
+                <h2>2. Enable SNMP Trap Ingestion</h2>
+                <p>To receive instant warnings during HA master failovers, VPN tunnel changes, and IPS alarms, route traps to port 162 on your Firewall-Mon host:</p>
+                
+                <div class="code-block-wrapper">
+                    <pre><code class="lang-bash">config system snmp
+    config trapd
+        edit 1
+            set ip <your-firewall-mon-server-ip>
+            set port 162
+            set status enable
+        next
+    end
+end</code></pre>
+                </div>
+
+                <h2>Supported System Metrics (OID Details)</h2>
+                <table class="docs-table">
+                    <thead>
+                        <tr>
+                            <th>OID Identifier</th>
+                            <th>MIB Name</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>.1.3.6.1.4.1.12356.101.4.1.3</code></td>
+                            <td>fgSysCpuUsage</td>
+                            <td>CPU load percentage.</td>
+                        </tr>
+                        <tr>
+                            <td><code>.1.3.6.1.4.1.12356.101.4.1.4</code></td>
+                            <td>fgSysMemUsage</td>
+                            <td>RAM memory usage percentage.</td>
+                        </tr>
+                        <tr>
+                            <td><code>.1.3.6.1.4.1.12356.101.4.1.8</code></td>
+                            <td>fgSysSesCount</td>
+                            <td>Active concurrent firewall sessions count.</td>
+                        </tr>
+                        <tr>
+                            <td><code>.1.3.6.1.4.1.12356.101.13.1.1</code></td>
+                            <td>fgHaMode</td>
+                            <td>Active High Availability cluster operational mode.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- SECTION 5: Custom Vendor Setup -->
+            <section class="docs-section hidden" id="section-custom-vendor">
+                <h1>Custom SNMP Vendor Setup</h1>
+                <p>Firewall-Mon exposes a clean Go interface allowing developers to write and register custom SNMP profiles without modifying the main polling loops.</p>
+                
+                <h2>The VendorProfile Interface</h2>
+                <p>To implement custom logic for a new firewall vendor, write a struct satisfying the `VendorProfile` interface located under `internal/snmp/vendor.go`:</p>
+                
+                <div class="code-block-wrapper">
+                    <pre><code class="lang-go">type VendorProfile interface {
+    // ParseSystemStatus extracts CPU, Memory, Disk and Session counts
+    ParseSystemStatus(pdu map[string]interface{}) (models.SystemStatus, error)
+    
+    // ParseInterfaces parses interface speed, status, and bandwidth metrics
+    ParseInterfaces(rows []map[string]interface{}) ([]models.InterfaceStatus, error)
+    
+    // GetAllVPNTunnels extracts active IPsec and SSL VPN tunnel stats
+    GetAllVPNTunnels(rows []map[string]interface{}) ([]models.VPNStatus, error)
+}</code></pre>
+                </div>
+
+                <h2>Registering the Profile</h2>
+                <p>Add your profile mapping inside `internal/snmp/vendor.go` in the global `Profiles` map registration:</p>
+                <div class="code-block-wrapper">
+                    <pre><code class="lang-go">var Profiles = map[string]VendorProfile{
+    "fortigate": &amp;FortiGateProfile{},
+    "paloalto":  &amp;PaloAltoProfile{},
+    "custom":    &amp;CustomProfile{}, // Your profile here
+}</code></pre>
+                </div>
+            </section>
+
+        </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <a href="index.html" class="logo">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="10" rx="2" />
+                        <path d="M12 2v9" />
+                        <path d="M8 5h8" />
+                    </svg>
+                    <span>Firewall-Mon</span>
+                </a>
+                <p>Vendor-agnostic firewall monitoring system built for speed, security audits, and complex topology traversal.</p>
+                <p style="margin-top: 12px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.4;">Firewall-Mon is a <a href="https://www.technicallabs.org" target="_blank" style="color: var(--accent); text-decoration: underline;">TechnicalLabs</a> project created by Xphox of <a href="https://www.xphox.net" target="_blank" style="color: var(--accent); text-decoration: underline;">Xphox Networks</a>.</p>
+            </div>
+            
+            <div class="footer-links-grid">
+                <div class="footer-links-col">
+                    <h4>Open Source</h4>
+                    <ul>
+                        <li><a href="https://github.com/xphox2/Firewall-Monitoring" target="_blank">Firewall-Mon</a></li>
+                        <li><a href="https://github.com/xphox2/Firewall-Collector" target="_blank">Firewall-Collector</a></li>
+                        <li><a href="https://github.com/xphox2/Firewall-Monitoring/blob/main/LICENSE" target="_blank">MIT License</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="docs.html?section=intro">Reference Docs</a></li>
+                        <li><a href="docs.html?section=architecture">Architecture Spec</a></li>
+                        <li><a href="docs.html?section=changelog">Changelog</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <div class="footer-bottom-container">
+                <p>&copy; 2026 Firewall-Mon. A TechnicalLabs project created by Xphox of Xphox Networks. Licensed under the MIT License.</p>
+                <div class="footer-meta">v0.10.498 (2026-06-27)</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Document Section Routing Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const navItems = document.querySelectorAll(".docs-nav-item");
+            const sections = document.querySelectorAll(".docs-section");
+
+            // 1. Tab selection logic
+            navItems.forEach(item => {
+                item.addEventListener("click", () => {
+                    const targetSection = item.getAttribute("data-section");
+                    switchSection(targetSection);
+                    
+                    // Update URL query string without reloading
+                    const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?section=' + targetSection;
+                    window.history.pushState({path:newUrl}, '', newUrl);
+                });
+            });
+
+            // 2. Parse URL parameters to set active section on load
+            const urlParams = new URLSearchParams(window.location.search);
+            const sectionParam = urlParams.get('section');
+            if (sectionParam) {
+                switchSection(sectionParam);
+            }
+
+            function switchSection(sectionId) {
+                // Remove active classes
+                navItems.forEach(nav => nav.classList.remove("active"));
+                sections.forEach(sec => sec.classList.add("hidden"));
+
+                // Add active state to target nav item
+                const targetNav = document.querySelector(`.docs-nav-item[data-section="${sectionId}"]`);
+                if (targetNav) targetNav.classList.add("active");
+
+                // Show target section
+                const targetSec = document.getElementById(`section-${sectionId}`);
+                if (targetSec) targetSec.classList.remove("hidden");
+                
+                // Scroll to top of content
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            // 3. Interactive Sequence Flow diagram switches
+            const seqTabs = document.querySelectorAll(".seq-tab-btn");
+            const seqLists = document.querySelectorAll(".seq-step-list");
+
+            seqTabs.forEach(tab => {
+                tab.addEventListener("click", () => {
+                    seqTabs.forEach(t => t.classList.remove("active"));
+                    tab.classList.add("active");
+
+                    seqLists.forEach(list => list.classList.add("hidden"));
+                    const targetSeq = tab.getAttribute("data-seq");
+                    document.getElementById(`list-${targetSeq}`).classList.remove("hidden");
+                });
+            });
+        });
+    </script>
+</body>
+</html>
