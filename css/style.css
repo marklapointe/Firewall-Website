@@ -193,10 +193,9 @@ ul {
 
 .header-container {
     position: relative;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 16px 24px;
-    padding-right: 120px;
+    width: 100%;
+    padding: 16px 40px;
+    padding-right: 140px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1648,6 +1647,7 @@ section {
 
 .quickstart-content {
     padding: 30px;
+    min-height: 580px;
 }
 
 .qs-pane p {
@@ -1895,7 +1895,7 @@ section {
    ========================================================================== */
 .lang-picker-container {
     position: absolute;
-    right: 24px;
+    right: 40px;
     top: 50%;
     transform: translateY(-50%);
     z-index: 110;
@@ -2018,7 +2018,8 @@ body.nav-open {
 
     .lang-picker-container {
         position: absolute;
-        right: 68px; /* Place to the left of the hamburger */
+        right: 68px;
+        left: auto;
         top: 50%;
         transform: translateY(-50%);
         z-index: 110;
@@ -2028,6 +2029,13 @@ body.nav-open {
         height: 60px;
         padding: 0 24px;
         padding-right: 120px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .logo {
+        margin: 0;
     }
 
     .site-header {

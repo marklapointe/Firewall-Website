@@ -4,11 +4,18 @@
 
 (function () {
     const DEFAULT_LANG = 'en';
-    const SUPPORTED_LANGS = ['en', 'es', 'fr'];
+    const SUPPORTED_LANGS = ['en', 'es', 'fr', 'ja', 'zh', 'de', 'pt', 'ko', 'it', 'ru'];
     const LANG_LABELS = {
         'en': 'EN',
         'es': 'ES',
-        'fr': 'FR'
+        'fr': 'FR',
+        'ja': 'JA',
+        'zh': 'ZH',
+        'de': 'DE',
+        'pt': 'PT',
+        'ko': 'KO',
+        'it': 'IT',
+        'ru': 'RU'
     };
 
     let currentTranslations = {};
