@@ -11,7 +11,6 @@
     "github_docs": "GitHub"
   },
   "hero": {
-    "badge": "Última Versão: v0.10.498",
     "title": "Uma única tela para sua <span class=\"accent-text\">frota de firewalls.</span>",
     "subtitle": "Monitoramento de SNMP, sFlow, syslog, traps e desvio de configuração em FortiGate, Palo Alto, SonicWall, pfSense, OPNsense e Firewalla. Auto-hospedado. Um contêiner. 30 segundos para o primeiro poll.",
     "copy_btn": "Copiar",
@@ -19,7 +18,8 @@
     "read_docs": "Ler os docs →",
     "stat_audit_label": "Descobertas de Auditoria Abertas",
     "stat_vendors_label": "Fabricantes Suportados",
-    "stat_license_label": "Licença Open Source"
+    "stat_license_label": "Licença Open Source",
+    "badge_prefix": "Última Versão:"
   },
   "why": {
     "tag": "Focado em Operações",

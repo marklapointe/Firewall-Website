@@ -11,7 +11,6 @@
     "github_docs": "GitHub"
   },
   "hero": {
-    "badge": "最新リリース: v0.10.498",
     "title": "ファイアウォール群を<span class=\"accent-text\">一元管理。</span>",
     "subtitle": "FortiGate, Palo Alto, SonicWall, pfSense, OPNsense, Firewallaに対応した、SNMP, sFlow, syslog, トラップおよび構成ドリフトの監視システム。セルフホスト対応、単一コンテナで動作、起動から最初のポーリングまでわずか30秒。",
     "copy_btn": "コピー",
@@ -19,7 +18,8 @@
     "read_docs": "ドキュメントを読む →",
     "stat_audit_label": "未解決の監査指摘事項",
     "stat_vendors_label": "対応ベンダー数",
-    "stat_license_label": "オープンソースライセンス"
+    "stat_license_label": "オープンソースライセンス",
+    "badge_prefix": "最新リリース:"
   },
   "why": {
     "tag": "運用現場の実績",

@@ -11,7 +11,6 @@
     "github_docs": "GitHub"
   },
   "hero": {
-    "badge": "最新发布: v0.10.498",
     "title": "防火墙群的<span class=\"accent-text\">单一管理视图。</span>",
     "subtitle": "支持 FortiGate, Palo Alto, SonicWall, pfSense, OPNsense 和 Firewalla 的 SNMP、sFlow、syslog、Trap 及配置漂移监控。自托管，单容器部署，启动到首次轮询仅需 30 秒。",
     "copy_btn": "复制",
@@ -19,7 +18,8 @@
     "read_docs": "阅读文档 →",
     "stat_audit_label": "未解决的安全审计项",
     "stat_vendors_label": "支持的硬件品牌",
-    "stat_license_label": "开源许可协议"
+    "stat_license_label": "开源许可协议",
+    "badge_prefix": "最新发布:"
   },
   "why": {
     "tag": "深耕网络安全运维",

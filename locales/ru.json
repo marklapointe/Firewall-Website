@@ -11,7 +11,6 @@
     "github_docs": "GitHub"
   },
   "hero": {
-    "badge": "Последний релиз: v0.10.498",
     "title": "Единый интерфейс для вашей <span class=\"accent-text\">группы межсетевых экранов.</span>",
     "subtitle": "Мониторинг SNMP, sFlow, syslog, трапов и изменений конфигурации на FortiGate, Palo Alto, SonicWall, pfSense, OPNsense и Firewalla. Self-hosted. Один контейнер. 30 секунд до первого опроса.",
     "copy_btn": "Копировать",
@@ -19,7 +18,8 @@
     "read_docs": "Читать документацию →",
     "stat_audit_label": "Открытые вопросы аудита",
     "stat_vendors_label": "Поддерживаемые вендоры",
-    "stat_license_label": "Лицензия Open Source"
+    "stat_license_label": "Лицензия Open Source",
+    "badge_prefix": "Последний релиз:"
   },
   "why": {
     "tag": "Ориентировано на практику",

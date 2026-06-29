@@ -11,7 +11,6 @@
     "github_docs": "GitHub"
   },
   "hero": {
-    "badge": "Neueste Version: v0.10.498",
     "title": "Eine Oberfläche für Ihre <span class=\"accent-text\">Firewall-Flotte.</span>",
     "subtitle": "SNMP, sFlow, Syslog, Traps und Konfigurations-Drift-Überwachung für FortiGate, Palo Alto, SonicWall, pfSense, OPNsense und Firewalla. Self-hosted. Ein Container. 30 Sekunden bis zur ersten Abfrage.",
     "copy_btn": "Kopieren",
@@ -19,7 +18,8 @@
     "read_docs": "Dokumentation lesen →",
     "stat_audit_label": "Offene Audit-Befunde",
     "stat_vendors_label": "Unterstützte Hersteller",
-    "stat_license_label": "Open-Source-Lizenz"
+    "stat_license_label": "Open-Source-Lizenz",
+    "badge_prefix": "Neueste Version:"
   },
   "why": {
     "tag": "Aus der Praxis",

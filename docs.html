@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SHR44BPF8L"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-SHR44BPF8L');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Firewall-Mon — Technical Documentation</title>
@@ -1061,13 +1070,14 @@ sudo tcpdump -i any port 6343 -nn</code></pre>
         <div class="footer-bottom">
             <div class="footer-bottom-container">
                 <p data-i18n="footer.copyright" data-i18n-html="true">&copy; 2026 Firewall-Mon. A <a href="https://www.technicallabs.org" target="_blank" style="color: var(--text-secondary); text-decoration: underline;">TechnicalLabs</a> project created by Xphox of <a href="https://www.xphox.net" target="_blank" style="color: var(--text-secondary); text-decoration: underline;">Xphox Networks</a>. Licensed under the MIT License.</p>
-                <div class="footer-meta" data-i18n="footer.meta">v0.10.498 (2026-06-27)</div>
+                <div class="footer-meta" data-i18n="footer.meta" id="footer-release-meta">v0.10.498 (2026-06-27)</div>
             </div>
         </div>
     </footer>
 
     <!-- Scripts -->
     <script src="js/i18n.js"></script>
+    <script src="js/main.js"></script>
 
     <!-- Document Section Routing Script -->
     <script>

@@ -11,7 +11,6 @@
     "github_docs": "GitHub"
   },
   "hero": {
-    "badge": "Última versión: v0.10.498",
     "title": "Un panel de control para tu <span class=\"accent-text\">flota de firewalls.</span>",
     "subtitle": "Monitoreo de SNMP, sFlow, syslog, traps y deriva de configuración en FortiGate, Palo Alto, SonicWall, pfSense, OPNsense y Firewalla. Auto-hospedado. Un contenedor. 30 segundos para la primera consulta.",
     "copy_btn": "Copiar",
@@ -19,7 +18,8 @@
     "read_docs": "Leer la doc →",
     "stat_audit_label": "Hallazgos de auditoría abiertos",
     "stat_vendors_label": "Proveedores compatibles",
-    "stat_license_label": "Licencia de código abierto"
+    "stat_license_label": "Licencia de código abierto",
+    "badge_prefix": "Último lanzamiento:"
   },
   "why": {
     "tag": "Basado en Operaciones",

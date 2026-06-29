@@ -11,7 +11,6 @@
     "github_docs": "GitHub"
   },
   "hero": {
-    "badge": "Ultimo Rilascio: v0.10.498",
     "title": "Un unico pannello per la tua <span class=\"accent-text\">flotta di firewall.</span>",
     "subtitle": "Monitoraggio di SNMP, sFlow, syslog, trap e deriva della configurazione per FortiGate, Palo Alto, SonicWall, pfSense, OPNsense e Firewalla. Self-hosted. Un container. 30 secondi per il primo polling.",
     "copy_btn": "Copia",
@@ -19,7 +18,8 @@
     "read_docs": "Leggi i docs →",
     "stat_audit_label": "Rilevamenti di Audit Aperti",
     "stat_vendors_label": "Produttori Supportati",
-    "stat_license_label": "Licenza Open Source"
+    "stat_license_label": "Licenza Open Source",
+    "badge_prefix": "Ultimo Rilascio:"
   },
   "why": {
     "tag": "Focalizzato sulle Operazioni",

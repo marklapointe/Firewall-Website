@@ -11,7 +11,6 @@
     "github_docs": "GitHub"
   },
   "hero": {
-    "badge": "Dernière version : v0.10.498",
     "title": "Un seul panneau de verre pour votre <span class=\"accent-text\">flotte de pare-feux.</span>",
     "subtitle": "Surveillance SNMP, sFlow, syslog, traps et dérive de configuration pour FortiGate, Palo Alto, SonicWall, pfSense, OPNsense et Firewalla. Auto-hébergé. Un seul conteneur. 30 secondes pour le premier sondage.",
     "copy_btn": "Copier",
@@ -19,7 +18,8 @@
     "read_docs": "Lire la doc →",
     "stat_audit_label": "Résultats d'audit ouverts",
     "stat_vendors_label": "Fournisseurs pris en charge",
-    "stat_license_label": "Licence Open Source"
+    "stat_license_label": "Licence Open Source",
+    "badge_prefix": "Dernière version :"
   },
   "why": {
     "tag": "Basé sur les Opérations",
